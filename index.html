@@ -53,6 +53,19 @@
         button:active { transform: scale(0.98); }
         .btn-chiste { background: #f39c12; color: white; }
         .btn-descargar { background: #27ae60; color: white; display: none; }
+        
+        .credito {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+        
         @media (min-width: 500px) {
             .botones { flex-direction: row; }
         }
@@ -67,21 +80,18 @@
             <button class="btn-descargar" id="btnDescargar" onclick="descargarChiste()">⬇️ Descargar</button>
         </div>
     </div>
+    
+    <div class="credito">DFF</div>
 
     <script>
-        // ⚠️ REEMPLAZA ESTA CLAVE CON LA TUYA DE humorapi.com
-        const API_KEY = "b5e378bf129b477693ae48e8ddbfab62
-";
-        
+        const API_KEY = "TU_CLAVE_AQUI";
         let chisteActual = null;
         
         async function traerChiste() {
             const url = `https://humorapi.com/api/jokes/random?api-key=${API_KEY}`;
-            
             try {
                 const respuesta = await fetch(url);
                 chisteActual = await respuesta.json();
-                
                 document.getElementById("chisteBox").textContent = chisteActual.joke;
                 document.getElementById("btnDescargar").style.display = "block";
             } catch (error) {
