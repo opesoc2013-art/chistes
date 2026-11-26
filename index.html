@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chistes API</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -13,62 +17,30 @@
             padding: 20px;
             min-height: 100vh;
         }
-        .contenedor {
-            max-width: 500px;
-            margin: 0 auto;
-            text-align: center;
-        }
-        h1 {
-            font-size: 1.8rem;
-            margin-bottom: 20px;
-        }
+        .contenedor { max-width: 500px; margin: 0 auto; text-align: center; }
+        h1 { font-size: 1.8rem; margin-bottom: 20px; }
         .chiste-box {
-            background: white;
-            color: #333;
-            padding: 30px;
-            border-radius: 15px;
-            margin: 20px 0;
-            min-height: 150px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.1rem;
-            line-height: 1.6;
+            background: white; color: #333; padding: 30px; border-radius: 15px;
+            margin: 20px 0; min-height: 150px; display: flex;
+            align-items: center; justify-content: center;
+            font-size: 1.1rem; line-height: 1.6;
         }
-        .botones {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-top: 20px;
-        }
+        .botones { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
         button {
-            padding: 15px;
-            font-size: 1rem;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: transform 0.1s;
+            padding: 15px; font-size: 1rem; border: none; border-radius: 10px;
+            cursor: pointer; font-weight: 600; transition: transform 0.1s;
         }
         button:active { transform: scale(0.98); }
         .btn-chiste { background: #f39c12; color: white; }
         .btn-descargar { background: #27ae60; color: white; display: none; }
-        
+        .btn-instalar { background: #e74c3c; color: white; display: none; }
         .credito {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.3);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            font-weight: bold;
+            position: fixed; bottom: 20px; right: 20px;
+            background: rgba(0,0,0,0.3); color: white;
+            padding: 8px 12px; border-radius: 8px;
+            font-size: 0.9rem; font-weight: bold;
         }
-        
-        @media (min-width: 500px) {
-            .botones { flex-direction: row; }
-        }
+        @media (min-width: 500px) { .botones { flex-direction: row; } }
     </style>
 </head>
 <body>
@@ -77,16 +49,17 @@
         <div class="chiste-box" id="chisteBox">Presiona el botón para un chiste</div>
         <div class="botones">
             <button class="btn-chiste" onclick="traerChiste()">Nuevo Chiste</button>
-            <button class="btn-descargar" id="btnDescargar" onclick="descargarChiste()">⬇️ Descargar</button>
+            <button class="btn-descargar" id="btnDescargar" onclick="descargarChiste()">⬇️ Descargar JSON</button>
+            <button class="btn-instalar" id="btnInstalar" onclick="instalarApp()">📱 Instalar en Celular</button>
         </div>
     </div>
-    
     <div class="credito">DFF</div>
 
     <script>
         const API_KEY = "TU_CLAVE_AQUI";
         let chisteActual = null;
-        
+        let deferredPrompt = null;
+
         async function traerChiste() {
             const url = `https://humorapi.com/api/jokes/random?api-key=${API_KEY}`;
             try {
@@ -98,7 +71,7 @@
                 document.getElementById("chisteBox").textContent = "Error: Verifica tu API Key";
             }
         }
-        
+
         function descargarChiste() {
             const blob = new Blob([JSON.stringify(chisteActual, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
@@ -107,6 +80,28 @@
             a.download = 'chiste.json';
             a.click();
             URL.revokeObjectURL(url);
+        }
+
+        // Captura el evento de instalación
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById("btnInstalar").style.display = "block";
+        });
+
+        function instalarApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then(() => {
+                    deferredPrompt = null;
+                    document.getElementById("btnInstalar").style.display = "none";
+                });
+            }
+        }
+
+        // Registra el service worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
         }
     </script>
 </body>
