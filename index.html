@@ -3,15 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chistes API</title>
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#667eea">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Chistes</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            font-family: Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 20px;
@@ -24,26 +20,53 @@
             margin: 20px 0; min-height: 150px; display: flex;
             align-items: center; justify-content: center;
             font-size: 1.1rem; line-height: 1.6;
-            word-wrap: break-word;
         }
-        .botones { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
         button {
             padding: 15px; font-size: 1rem; border: none; border-radius: 10px;
-            cursor: pointer; font-weight: 600; transition: transform 0.1s;
+            cursor: pointer; font-weight: 600; margin: 5px; width: 100%;
         }
-        button:active { transform: scale(0.98); }
         .btn-chiste { background: #f39c12; color: white; }
         .btn-descargar { background: #27ae60; color: white; display: none; }
-        .btn-instalar { background: #e74c3c; color: white; display: none; }
         .credito {
             position: fixed; bottom: 20px; right: 20px;
-            background: rgba(0,0,0,0.3); color: white;
-            padding: 8px 12px; border-radius: 8px;
-            font-size: 0.9rem; font-weight: bold;
+            background: rgba(0,0,0,0.3); padding: 8px 12px;
+            border-radius: 8px; font-weight: bold;
         }
-        @media (min-width: 500px) { .botones { flex-direction: row; } }
     </style>
 </head>
 <body>
     <div class="contenedor">
-        <h1>
+        <h1>😂 Chistes</h1>
+        <div class="chiste-box" id="chisteBox">Presiona el botón</div>
+        <button class="btn-chiste" onclick="traerChiste()">Nuevo Chiste</button>
+        <button class="btn-descargar" id="btnDescargar" onclick="descargarChiste()">⬇️ Descargar</button>
+    </div>
+    <div class="credito">DFF</div>
+
+    <script>
+        let chisteActual = null;
+
+        async function traerChiste() {
+            try {
+                const respuesta = await fetch("https://v2.jokeapi.dev/joke/Any?lang=es&type=single");
+                const datos = await respuesta.json();
+                chisteActual = datos;
+                document.getElementById("chisteBox").textContent = datos.joke;
+                document.getElementById("btnDescargar").style.display = "block";
+            } catch (error) {
+                document.getElementById("chisteBox").textContent = "Error: " + error.message;
+            }
+        }
+
+        function descargarChiste() {
+            const blob = new Blob([JSON.stringify(chisteActual, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'chiste.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
