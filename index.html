@@ -82,7 +82,6 @@
             URL.revokeObjectURL(url);
         }
 
-        // Captura el evento de instalación
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
@@ -99,7 +98,6 @@
             }
         }
 
-        // Registra el service worker
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js');
         }
