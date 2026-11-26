@@ -3,70 +3,220 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chistes</title>
+    <title>Chistes DFF</title>
+
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#667eea">
+
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * {
+            box-sizing: border-box;
+        }
+
         body {
+            margin: 0;
             font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
-            padding: 20px;
             min-height: 100vh;
+            padding: 20px;
         }
-        .contenedor { max-width: 500px; margin: 0 auto; text-align: center; }
-        h1 { font-size: 1.8rem; margin-bottom: 20px; }
+
+        .contenedor {
+            max-width: 500px;
+            margin: auto;
+            text-align: center;
+            padding-top: 30px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
         .chiste-box {
-            background: white; color: #333; padding: 30px; border-radius: 15px;
-            margin: 20px 0; min-height: 150px; display: flex;
-            align-items: center; justify-content: center;
-            font-size: 1.1rem; line-height: 1.6;
+            background: white;
+            color: #333;
+            padding: 25px;
+            border-radius: 15px;
+            min-height: 160px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            white-space: pre-line;
         }
+
         button {
-            padding: 15px; font-size: 1rem; border: none; border-radius: 10px;
-            cursor: pointer; font-weight: 600; margin: 5px; width: 100%;
+            width: 100%;
+            padding: 15px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
         }
-        .btn-chiste { background: #f39c12; color: white; }
-        .btn-descargar { background: #27ae60; color: white; display: none; }
+
+        .btn-chiste {
+            background: #f39c12;
+            color: white;
+        }
+
+        .btn-descargar {
+            background: #27ae60;
+            color: white;
+            display: none;
+        }
+
+        .btn-instalar {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .info {
+            margin-top: 12px;
+            font-size: 0.95rem;
+            background: rgba(0,0,0,0.25);
+            padding: 12px;
+            border-radius: 10px;
+            display: none;
+            text-align: left;
+        }
+
         .credito {
-            position: fixed; bottom: 20px; right: 20px;
-            background: rgba(0,0,0,0.3); padding: 8px 12px;
-            border-radius: 8px; font-weight: bold;
+            position: fixed;
+            right: 15px;
+            bottom: 15px;
+            background: rgba(0,0,0,0.35);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        @media (min-width: 600px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .chiste-box {
+                font-size: 1.25rem;
+            }
         }
     </style>
 </head>
 <body>
+
     <div class="contenedor">
-        <h1>😂 Chistes</h1>
-        <div class="chiste-box" id="chisteBox">Presiona el botón</div>
-        <button class="btn-chiste" onclick="traerChiste()">Nuevo Chiste</button>
-        <button class="btn-descargar" id="btnDescargar" onclick="descargarChiste()">⬇️ Descargar</button>
+        <h1>😂 Chistes Random</h1>
+
+        <div class="chiste-box" id="chisteBox">
+            Presiona el botón para cargar un chiste
+        </div>
+
+        <button class="btn-chiste" onclick="traerChiste()">
+            Nuevo Chiste
+        </button>
+
+        <button class="btn-descargar" id="btnDescargar" onclick="descargarChiste()">
+            ⬇️ Descargar chiste
+        </button>
+
+        <button class="btn-instalar" id="btnInstalar" onclick="instalarApp()">
+            📲 Instalar app en celular
+        </button>
+
+        <div class="info" id="infoInstalacion"></div>
     </div>
+
     <div class="credito">DFF</div>
 
     <script>
         let chisteActual = null;
+        let deferredPrompt = null;
 
         async function traerChiste() {
+            const caja = document.getElementById("chisteBox");
+            const botonDescargar = document.getElementById("btnDescargar");
+
+            caja.textContent = "Cargando chiste...";
+
             try {
                 const respuesta = await fetch("https://v2.jokeapi.dev/joke/Any?lang=es&type=single");
                 const datos = await respuesta.json();
+
+                if (datos.error) {
+                    caja.textContent = "La API no devolvió un chiste. Intenta otra vez.";
+                    return;
+                }
+
                 chisteActual = datos;
-                document.getElementById("chisteBox").textContent = datos.joke;
-                document.getElementById("btnDescargar").style.display = "block";
+                caja.textContent = datos.joke;
+                botonDescargar.style.display = "block";
+
             } catch (error) {
-                document.getElementById("chisteBox").textContent = "Error: " + error.message;
+                caja.textContent = "Error al cargar el chiste.";
             }
         }
 
         function descargarChiste() {
-            const blob = new Blob([JSON.stringify(chisteActual, null, 2)], { type: 'application/json' });
+            if (!chisteActual) return;
+
+            const texto = JSON.stringify(chisteActual, null, 2);
+            const blob = new Blob([texto], { type: "application/json" });
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
+
+            const a = document.createElement("a");
             a.href = url;
-            a.download = 'chiste.json';
+            a.download = "chiste.json";
+            document.body.appendChild(a);
             a.click();
+            document.body.removeChild(a);
+
             URL.revokeObjectURL(url);
         }
+
+        window.addEventListener("beforeinstallprompt", function(e) {
+            e.preventDefault();
+            deferredPrompt = e;
+        });
+
+        async function instalarApp() {
+            const info = document.getElementById("infoInstalacion");
+
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const resultado = await deferredPrompt.userChoice;
+
+                if (resultado.outcome === "accepted") {
+                    info.style.display = "block";
+                    info.textContent = "App instalada.";
+                }
+
+                deferredPrompt = null;
+                return;
+            }
+
+            info.style.display = "block";
+            info.innerHTML = `
+                Si no aparece la ventana de instalación:<br><br>
+                <b>Android / Chrome:</b><br>
+                Toca los 3 puntos arriba a la derecha → <b>Instalar app</b> o <b>Agregar a pantalla principal</b>.<br><br>
+                <b>iPhone / Safari:</b><br>
+                Toca el botón Compartir → <b>Agregar a pantalla de inicio</b>.
+            `;
+        }
+
+        if ("serviceWorker" in navigator) {
+            window.addEventListener("load", function() {
+                navigator.serviceWorker.register("./sw.js");
+            });
+        }
     </script>
+
 </body>
 </html>
